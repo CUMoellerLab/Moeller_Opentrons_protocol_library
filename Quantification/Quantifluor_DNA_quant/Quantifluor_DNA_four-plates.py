@@ -1,24 +1,22 @@
 from opentrons import protocol_api
-from opentrons.protocols.types import APIVersion
 from opentrons_functions.transfer import add_buffer, get_96_from_384_wells
 
 metadata = {
-    'apiLevel': '2.5',
+    'apiLevel': '2.8',
     'author': 'Jon Sanders'}
 
-
-api_version = APIVersion(2, 5)
-
+ 
 cols = ['{0}{1}'.format(row, col) for col in range(1, 25)
         for row in ['A', 'B']]
 
+trash_tips = True
 
-def run(protocol: protocol_api.ProtocolContext(api_version=api_version)):
+def run(protocol: protocol_api.ProtocolContext):
 
     # define deck positions and labware
 
     # tips
-    tiprack_300 = protocol.load_labware('opentrons_96_tiprack_300ul', 6)
+    tiprack_300 = protocol.load_labware('opentrons_96_tiprack_300ul', 9)
 
     tipracks_10f = [protocol.load_labware('opentrons_96_filtertiprack_10ul', x)
                     for x in [1, 4, 7, 10]]
@@ -27,7 +25,7 @@ def run(protocol: protocol_api.ProtocolContext(api_version=api_version)):
     reagents = protocol.load_labware('usascientific_12_reservoir_22ml',
                                      3, 'reagents')
     assay = protocol.load_labware('corning_384_wellplate_112ul_flat',
-                                  9, 'assay')
+                                  6, 'assay')
 
     samples = [protocol.load_labware('biorad_96_wellplate_200ul_pcr',
                                      x, 'samples')
@@ -46,16 +44,11 @@ def run(protocol: protocol_api.ProtocolContext(api_version=api_version)):
     # plate. Use the same tip for the entirety of these transfers, then
     # replace it in the rack.
 
-    add_buffer(pipette_left,
-               [reagents[x] for x in ['A1', 'A2']],
-               assay,
-               cols,
-               38,
-               13000/8,
-               tip=None,
-               tip_vol=300,
-               remaining=None,
-               drop_tip=False)
+    pipette_left.distribute(38,
+                            reagents.wells_by_name()['A1'],
+                            assay.columns(),
+                            blow_out=True,
+                            blowout_location='source well')
 
     # add 2 µL of each sample to each of the wells. Mix after dispensing.
     # Dispose of these tips.
@@ -66,6 +59,6 @@ def run(protocol: protocol_api.ProtocolContext(api_version=api_version)):
                                plate.wells(),
                                [assay[x] for x in assay_wells],
                                mix_after=(1, 10),
-                               touch_tip=True,
-                               trash=True,
+                               touch_tip=False,
+                               trash=trash_tips,
                                new_tip='always')

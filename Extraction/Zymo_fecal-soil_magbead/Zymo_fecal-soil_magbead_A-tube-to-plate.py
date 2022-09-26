@@ -1,8 +1,9 @@
 from opentrons import protocol_api
 from numpy import floor
+from itertools import chain
 
 metadata = {
-    'apiLevel': '2.5',
+    'apiLevel': '2.8',
     'author': 'Jon Sanders'}
 
 # Define parameters for protocol
@@ -11,13 +12,16 @@ metadata = {
 quantity = 200
 
 # Height above bottom of source tube to aspirate from
-z_height = 15
+z_height = 16
 
 # Rate of aspiration (1 is default for pipette)
 rate = 0.25
 
 # Tuberack labware
 tuberack_labware = 'opentrons_24_tuberack_generic_2ml_screwcap'
+
+# Subset columns if desired
+cols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 
 def run(protocol: protocol_api.ProtocolContext):
@@ -70,11 +74,29 @@ def run(protocol: protocol_api.ProtocolContext):
         # between the tubes on the deck and the wells in the destination plate.
 
         d_rows = [c[i:j] for c in samples.columns()]
-        d_wells = d_rows[a:b]
+        d_wells = list(chain(*d_rows[a:b]))
+        
+        s_wells = rack.wells()
+        
+        # filter wells to just the ones we want
+        
+        pairs = tuple(zip([s for s in s_wells],
+                          [d for d in d_wells]))
+        
+        pairs_filtered = [(x, y) for x, y in pairs
+                          if int(y.display_name[1:3].strip()) in cols]        
+
+        s_wells_filtered = [x for x, y in pairs_filtered]
+        d_wells_filtered = [y for x, y in pairs_filtered]
+        
+        if not s_wells_filtered:
+            continue
 
         pipette_right.transfer(quantity,
-                               [w.bottom(z=z_height) for w in rack.wells()],
-                               d_wells,
+                               [w.bottom(z=z_height) for w in s_wells_filtered],
+                               d_wells_filtered,
                                new_tip='always',
                                rate=rate,
                                trash=True)
+
+

@@ -11,7 +11,7 @@ metadata = {'apiLevel': '2.5',
 
 # Set to `True` to perform a short run, with brief pauses and only
 # one column of samples
-test_run = False
+test_run = True
 
 if test_run:
     pause_bind = 3
@@ -167,7 +167,7 @@ def run(protocol: protocol_api.ProtocolContext):
 
     # load plate on magdeck
     # mag_plate = magblock.load_labware('vwr_96_wellplate_1000ul')
-    mag_plate = magblock.load_labware('biorad_96_wellplate_200ul_pcr')
+    mag_plate = magblock.load_labware('nest_96_wellplate_100ul_pcr_full_skirt')
 
     # initialize pipettes
     pipette_left = protocol.load_instrument('p300_multi',
@@ -589,8 +589,6 @@ def run(protocol: protocol_api.ProtocolContext):
                                          pause_s=pause_mag)
 
     # ### Dry
-
-
     protocol.comment('Removing wash and drying beads.')
 
     # This should:
@@ -614,8 +612,9 @@ def run(protocol: protocol_api.ProtocolContext):
                        drop_tip=True)
 
     # dry
+
     protocol.delay(seconds=pause_dry)
-    
+
     protocol.pause('Replace empty tiprack in position {0} with new rack of '
                    '200 µL filter tips.'.format(tiprack_wash.parent))
 
