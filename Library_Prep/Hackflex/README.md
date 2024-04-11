@@ -2,7 +2,7 @@
 
 This protocol is adapted from the preprint, "**Hackflex: low cost Illumina sequencing library construction for high sample counts**" ([Gaio et al 2019](https://www.biorxiv.org/content/10.1101/779215v1.abstract)). It employs a diluted tagmentation beads and lab-made reagents to dramatically reduce the cost of Nextera Flex Illumina libraries. This version is adapted for the OpenTrons robot based on our testing.
 
-Approximate total run time: ???
+Approximate total run time: 4 hours
 
 
 ## Buffers and Reagents
